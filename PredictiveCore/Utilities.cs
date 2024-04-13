@@ -76,10 +76,10 @@ namespace PredictiveCore
 		{
 			return date.Season switch
 			{
-				"spring" => new SDate (1, "summer", date.Year),
-				"summer" => new SDate (1, "fall", date.Year),
-				"fall" => new SDate (1, "winter", date.Year),
-				"winter" => new SDate (1, "spring", date.Year + 1),
+				Season.Spring => new SDate (1, "summer", date.Year),
+				Season.Summer => new SDate (1, "fall", date.Year),
+				Season.Fall => new SDate (1, "winter", date.Year),
+				Season.Winter => new SDate (1, "spring", date.Year + 1),
 				_ => throw new ArgumentOutOfRangeException ("invalid season"),
 			};
 		}
@@ -90,8 +90,8 @@ namespace PredictiveCore
 		// Returns the CultureInfo for the current game language.
 		public static CultureInfo GetCurrentCulture ()
 		{
-			string langCode = Game1.content.LanguageCodeString
-				(Game1.content.GetCurrentLanguage ());
+			string langCode = LocalizedContentManager.LanguageCodeString
+                (Game1.content.GetCurrentLanguage ());
 			return new CultureInfo (langCode);
 		}
 

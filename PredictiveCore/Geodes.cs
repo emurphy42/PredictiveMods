@@ -57,7 +57,7 @@ namespace PredictiveCore
 			{
 				this.geodeNumber = geodeNumber;
 				this.geodeType = geodeType;
-				geodeObject = new SObject (GeodeObjects[geodeType], 1);
+				geodeObject = new SObject (GeodeObjects[geodeType].ToString(), 1);
 
 				uint originalNumber = Game1.player.stats.GeodesCracked;
 				try
@@ -84,7 +84,7 @@ namespace PredictiveCore
 				@object.Stack * @object.Price > 75;
 
 			public bool needDonation => !UndonatableTreasures.Contains (item.Name) &&
-				!new LibraryMuseum ().museumAlreadyHasArtifact (item.ParentSheetIndex);
+				!LibraryMuseum.HasDonatedArtifact(item.ParentSheetIndex.ToString());
 		}
 
 		public class Prediction

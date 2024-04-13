@@ -1,5 +1,7 @@
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Enchantments;
+using StardewValley.Extensions;
 using StardewValley.Tools;
 using System;
 using System.Collections.Generic;
@@ -33,13 +35,13 @@ namespace PredictiveCore
 			Tool fakeTool = tool.getOne () as Tool;
 
 			// Start from the next enchantment and continue to the limit.
-			uint fromNumber = Game1.stats.getStat ("timesEnchanted");
-			for (uint number = fromNumber; number < fromNumber + limit; ++number)
+			uint fromNumber = Game1.stats.Get("timesEnchanted");
+            for (uint number = fromNumber; number < fromNumber + limit; ++number)
 			{
 				// Select a random available enchantment per the base game rules.
 				Random rng = new ((int) number + (int) Game1.uniqueIDForThisGame);
 				var candidates = BaseEnchantment.GetAvailableEnchantmentsForItem (fakeTool);
-				var enchantment = Utility.GetRandom (candidates, rng);
+				var enchantment = rng.ChooseFrom(candidates);
 
 				predictions.Add (new ()
 				{

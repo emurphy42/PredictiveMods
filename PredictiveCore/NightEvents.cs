@@ -67,7 +67,7 @@ namespace PredictiveCore
 				if (days == 29)
 					@event = Event.Earthquake;
 				// Ignoring the possibility of a WorldChangeEvent here.
-				else if (rng.NextDouble () < 0.01 && tomorrow.Season != "winter")
+				else if (rng.NextDouble () < 0.01 && tomorrow.Season != Season.Winter)
 					@event = Event.Fairy;
 				else if (rng.NextDouble () < 0.01)
 					@event = Event.Witch;

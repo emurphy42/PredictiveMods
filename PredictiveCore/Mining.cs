@@ -1,6 +1,7 @@
 using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 using StardewValley;
+using StardewValley.Extensions;
 using StardewValley.Locations;
 using StardewValley.Objects;
 using StardewValley.Tools;
@@ -214,64 +215,64 @@ namespace PredictiveCore
 			{
 				10 => new List<Item> ()
 				{
-					new Boots (506),
-					new Boots (507),
-					new MeleeWeapon (12),
-					new MeleeWeapon (17),
-					new MeleeWeapon (22),
-					new MeleeWeapon (31),
-				},
+					new Boots ("506"),
+					new Boots ("507"),
+                    new MeleeWeapon ("12"),
+                    new MeleeWeapon ("17"),
+                    new MeleeWeapon ("22"),
+                    new MeleeWeapon ("31"),
+                },
 				20 => new List<Item> ()
 				{
-					new MeleeWeapon (11),
-					new MeleeWeapon (24),
-					new MeleeWeapon (20),
-					new Ring (517),
-					new Ring (519),
-				},
+					new MeleeWeapon ("11"),
+                    new MeleeWeapon ("24"),
+                    new MeleeWeapon ("20"),
+                    new Ring ("517"),
+                    new Ring ("519"),
+                },
 				40 => new List<Item> () { new Slingshot () },
 				50 => new List<Item> ()
 				{
-					new Boots (509),
-					new Boots (510),
-					new Boots (508),
-					new MeleeWeapon (1),
-					new MeleeWeapon (43),
-				},
+					new Boots ("509"),
+                    new Boots ("510"),
+                    new Boots ("508"),
+                    new MeleeWeapon ("1"),
+                    new MeleeWeapon ("43"),
+                },
 				60 => new List<Item> ()
 				{
-					new MeleeWeapon (21),
-					new MeleeWeapon (44),
-					new MeleeWeapon (6),
-					new MeleeWeapon (18),
-					new MeleeWeapon (27),
-				},
-				70 => new List<Item> () { new Slingshot (33) },
-				80 => new List<Item> ()
+					new MeleeWeapon ("21"),
+                    new MeleeWeapon ("44"),
+                    new MeleeWeapon ("6"),
+                    new MeleeWeapon ("18"),
+                    new MeleeWeapon ("27"),
+                },
+				70 => new List<Item> () { new Slingshot ("33") },
+                80 => new List<Item> ()
 				{
-					new Boots (512),
-					new Boots (511),
-					new MeleeWeapon (10),
-					new MeleeWeapon (7),
-					new MeleeWeapon (46),
-					new MeleeWeapon (19),
-				},
+					new Boots ("512"),
+                    new Boots ("511"),
+                    new MeleeWeapon ("10"),
+                    new MeleeWeapon ("7"),
+                    new MeleeWeapon ("46"),
+                    new MeleeWeapon ("19"),
+                },
 				90 => new List<Item> ()
 				{
-					new MeleeWeapon (8),
-					new MeleeWeapon (52),
-					new MeleeWeapon (45),
-					new MeleeWeapon (5),
-					new MeleeWeapon (60),
-				},
-				100 => new List<Item> () { new SObject (434, 1) },
-				110 => new List<Item> ()
+					new MeleeWeapon ("8"),
+                    new MeleeWeapon ("52"),
+                    new MeleeWeapon ("45"),
+                    new MeleeWeapon ("5"),
+                    new MeleeWeapon ("60"),
+                },
+				100 => new List<Item> () { new SObject ("434", 1) },
+                110 => new List<Item> ()
 				{
-					new Boots (514),
-					new Boots (878),
-					new MeleeWeapon (50),
-					new MeleeWeapon (28),
-				},
+					new Boots ("514"),
+                    new Boots ("878"),
+                    new MeleeWeapon ("50"),
+                    new MeleeWeapon ("28"),
+                },
 				120 => Game1.player.hasSkullKey
 					? new List<Item> () { new SpecialItem (4) }
 					: new List<Item> (),
@@ -281,7 +282,7 @@ namespace PredictiveCore
 			if (Game1.netWorldState.Value.ShuffleMineChests == Game1.MineChestType.Remixed)
 			{
 				Random rng = new ((int) (Game1.uniqueIDForThisGame * 512) + floor);
-				return Utility.GetRandom (candidates, rng);
+				return rng.ChooseFrom(candidates);
 			}
 			return candidates.FirstOrDefault ();
 		}

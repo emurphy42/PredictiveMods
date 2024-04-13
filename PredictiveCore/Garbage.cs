@@ -46,7 +46,7 @@ namespace PredictiveCore
 
 		// Whether this module should be available for player use.
 		public static bool IsAvailable =>
-			Game1.stats.getStat ("trashCansChecked") > 0 &&
+			Game1.stats.Get("trashCansChecked") > 0 &&
 			(Utilities.Config.InaccuratePredictions ||
 				(Utilities.SupportedVersion &&
 				!Utilities.Helper.ModRegistry.IsLoaded ("AairTheGreat.BetterGarbageCans")));
@@ -57,7 +57,7 @@ namespace PredictiveCore
 		// Utility.getRandomItemFromSeason, as the combination of those would
 		// keep this confusingly true well into the midgame.
 		public static bool IsProgressDependent =>
-			Game1.stats.getStat ("trashCansChecked") + 1 <= 20;
+			Game1.stats.Get("trashCansChecked") + 1 <= 20;
 
 		// Lists the loot to be found in Garbage Cans on the given date.
 		public static List<Prediction> ListLootForDate (SDate date,
@@ -210,12 +210,12 @@ namespace PredictiveCore
 				rng.NextDouble ();
 
 			// Roll for regular items.
-			uint trashCansChecked = Game1.stats.getStat ("trashCansChecked") + 1;
+			uint trashCansChecked = Game1.stats.Get("trashCansChecked") + 1;
 			bool regular = trashCansChecked > 20 && rng.NextDouble () < 0.01;
 
 			// Roll for the Garbage Hat.
 			if (trashCansChecked > 20 && rng.NextDouble () < 0.002)
-				return new Hat (66);
+				return new Hat ("66");
 			else if (hatOnly)
 				return null;
 
@@ -228,24 +228,24 @@ namespace PredictiveCore
 				return null;
 
 			// Roll for a generic or seasonal item.
-			int itemID = rng.Next (10) switch
+			string itemID = rng.Next (10) switch
 			{
-				1 => 167, // Joja Cola
-				2 => 170, // Broken Glasses
-				3 => 171, // Broken CD
-				4 => 172, // Soggy Newspaper
-				5 => 216, // Bread
-				6 => -1, // seasonal item
-				7 => 403, // Field Snack
-				8 => 309 + rng.Next (3), // Acorn, Maple Seed, Pine Cone
-				9 => 153, // Green Algae
-				_ => 168, // Trash
-			};
+				1 => "167", // Joja Cola
+				2 => "170", // Broken Glasses
+				3 => "171", // Broken CD
+                4 => "172", // Soggy Newspaper
+                5 => "216", // Bread
+                6 => "-1", // seasonal item
+                7 => "403", // Field Snack
+                8 => (309 + rng.Next (3)).ToString(), // Acorn, Maple Seed, Pine Cone
+				9 => "153", // Green Algae
+                _ => "168", // Trash
+            };
 			bool seasonal = false;
-			if (itemID == -1)
-			{
+			if (itemID == "-1")
+            {
 				seasonal = true;
-				itemID = Utility.getRandomItemFromSeason (date.Season,
+                itemID = Utility.getRandomItemFromSeason (date.Season,
 					(CanLocations[can].X * 653) + (CanLocations[can].Y * 777) +
 					date.DaysSinceStart, forQuest: false, changeDaily: false);
 			}
@@ -260,16 +260,16 @@ namespace PredictiveCore
 				{
 					locationSpecific = true;
 					if (rng.NextDouble () < 0.05)
-						itemID = 749; // Omni Geode
+						itemID = "749"; // Omni Geode
 					else
-						itemID = 535; // Geode
+						itemID = "535"; // Geode
 				}
 				break;
 			case Can.Blacksmith:
 				if (rng.NextDouble () < 0.2 + dailyLuck)
 				{
 					locationSpecific = true;
-					itemID = 378 + (rng.Next (3) * 2); // Copper Ore, Iron Ore, Coal
+					itemID = (378 + (rng.Next (3) * 2)).ToString(); // Copper Ore, Iron Ore, Coal
 					rng.Next (1, 5); // unused
 				}
 				break;
@@ -278,24 +278,24 @@ namespace PredictiveCore
 				{
 					locationSpecific = true;
 					if (!today)
-						itemID = 217; // placeholder for dish of the day
+						itemID = "217"; // placeholder for dish of the day
 					else if (Game1.dishOfTheDay != null)
-						itemID = Game1.dishOfTheDay.ParentSheetIndex;
+						itemID = Game1.dishOfTheDay.ParentSheetIndex.ToString();
 				}
 				break;
 			case Can.JoshHouse:
 				if (rng.NextDouble () < 0.2 + dailyLuck)
 				{
 					locationSpecific = true;
-					itemID = 223; // Cookie
+					itemID = "223"; // Cookie
 				}
 				break;
 			case Can.JojaMart:
 				if (rng.NextDouble () < 0.2 &&
-					!Utility.HasAnyPlayerSeenEvent (191393))
+					!Utility.HasAnyPlayerSeenEvent ("191393"))
 				{
 					locationSpecific = true;
-					itemID = 167; // Joja Cola
+					itemID = "167"; // Joja Cola
 				}
 				break;
 			case Can.MovieTheater:
@@ -303,7 +303,7 @@ namespace PredictiveCore
 				{
 					locationSpecific = true;
 					itemID = (rng.NextDouble () < 0.25)
-						? 809 : 270; // Movie Ticket, Corn
+						? "809" : "270"; // Movie Ticket, Corn
 				}
 				break;
 			}
