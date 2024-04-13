@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using HarmonyLib;
 using static StardewValley.GameLocation;
 using StardewValley.Objects;
+using System.Threading.Channels;
 
 namespace PublicAccessTV
 {
@@ -25,6 +26,8 @@ namespace PublicAccessTV
 		private readonly DialogueEditor dialogueEditor = new();
 		private readonly EventsEditor eventsEditor = new();
 		private readonly MailEditor mailEditor = new();
+
+		private static bool questionModified = false;
 
 		public override void Entry (IModHelper helper)
 		{
@@ -104,29 +107,54 @@ namespace PublicAccessTV
 				channel.update ();
 		}
 
-		public static bool createQuestionDialogue_prefix(string question, Response[] answerChoices, afterQuestionBehavior afterDialogueBehavior, NPC speaker = null)
+		public static bool createQuestionDialogue_prefix(GameLocation __instance, string question, Response[] answerChoices, afterQuestionBehavior afterDialogueBehavior, NPC speaker = null)
 		{
-			return Instance.onQuestionRaised(question, answerChoices, afterDialogueBehavior, speaker);
+			return Instance.onQuestionRaised(__instance, question, answerChoices, afterDialogueBehavior, speaker);
 		}
 
-		private bool onQuestionRaised(string question, Response[] answerChoices, afterQuestionBehavior afterDialogueBehavior, NPC speaker = null)
+		private bool onQuestionRaised(GameLocation __instance, string question, Response[] answerChoices, afterQuestionBehavior afterDialogueBehavior, NPC speaker = null)
 		{
-			if (question == Game1.content.LoadString("Strings\\StringsFromCSFiles:TV.cs.13120"))
+			if (questionModified)
 			{
-                var answerChoicesList = answerChoices.ToList<Response>();
-                foreach (Channel channel in channels)
-                {
-                    if (channel.isAvailable)
-					{
-						answerChoicesList.Add(new Response(channel.globalID, channel.title));
-                    }
+                questionModified = false;
+				return true;
+			}
+
+			if (question != Game1.content.LoadString("Strings\\StringsFromCSFiles:TV.cs.13120"))
+			{
+				return true;
+			}
+
+			List<Response> answerChoicesList = new();
+			foreach (Response response in answerChoices)
+			{
+				if (response.responseKey != "(Leave)")
+				{
+					answerChoicesList.Add(response);
+				}
+			}
+            foreach (Channel channel in channels)
+            {
+                if (channel.isAvailable)
+				{
+					answerChoicesList.Add(new Response(channel.globalID, channel.title));
                 }
-                answerChoices = answerChoicesList.ToArray();
+			}
+            foreach (Response response in answerChoices)
+            {
+                if (response.responseKey == "(Leave)")
+                {
+                    answerChoicesList.Add(response);
+                }
             }
-			return true;
+            questionModified = true;
+            __instance.createQuestionDialogue(question, answerChoicesList.ToArray(), afterDialogueBehavior, speaker);
+            questionModified = false;
+            return false;
         }
 
-		public static bool selectChannel_prefix(TV __instance, Farmer who, string answer)
+
+        public static bool selectChannel_prefix(TV __instance, Farmer who, string answer)
 		{
 			return Instance.onTVChannelSelected(__instance, who, answer);
 		}

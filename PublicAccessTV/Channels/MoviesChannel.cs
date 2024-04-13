@@ -6,6 +6,7 @@ using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.GameData.Movies;
 using StardewValley.Objects;
+using StardewValley.TokenizableStrings;
 using System.IO;
 
 namespace PublicAccessTV
@@ -56,8 +57,8 @@ namespace PublicAccessTV
 			// Current movie poster, title and description
 			queueScene (new Scene (Helper.Translation.Get ("movies.current", new
 			{
-				title = prediction.currentMovie.Title,
-				description = prediction.currentMovie.Description,
+				title = TokenParser.ParseText(prediction.currentMovie.Title),
+				description = TokenParser.ParseText(prediction.currentMovie.Description),
 			}), loadMoviePoster (tv, prediction.currentMovie))
 			{ musicTrack = prediction.currentMovie.Scenes[0].Music });
 
@@ -96,8 +97,8 @@ namespace PublicAccessTV
 			{
 				season = Utility.getSeasonNameFromNumber
 						(prediction.firstDateOfNextMovie.SeasonIndex),
-				title = prediction.nextMovie.Title,
-				description = prediction.nextMovie.Description,
+				title = TokenParser.ParseText(prediction.nextMovie.Title),
+				description = TokenParser.ParseText(prediction.nextMovie.Description),
 			}), loadMoviePoster (tv, prediction.nextMovie))
 			{ musicTrack = prediction.nextMovie.Scenes[0].Music });
 
