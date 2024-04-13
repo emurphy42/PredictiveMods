@@ -35,6 +35,7 @@ namespace PredictiveCore
 
 	public static class Utilities
 	{
+		// TODO update once prediction logic is verified against 1.6.3
 		public static bool SupportedVersion =>
 			new SemanticVersion (Game1.version).IsBetween ("1.5.3", "1.6.0-pre");
 

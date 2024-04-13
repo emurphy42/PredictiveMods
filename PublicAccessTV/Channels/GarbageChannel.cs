@@ -81,12 +81,19 @@ namespace PublicAccessTV
 
 		private static bool[] GetCurrentCansChecked ()
 		{
-			GameLocation town = Game1.getLocationFromName ("Town");
-			var value = Helper.Reflection.GetField<NetArray<bool, NetBool>>
-				(town, "garbageChecked").GetValue ();
-			bool[] result = new bool[8];
-			for (int i = 0; i < 8; ++i)
-				result[i] = value[i];
+			string[] cans = {
+				"JodiAndKent",
+				"EmilyAndHaley",
+				"Mayor",
+				"Museum",
+				"Blacksmith",
+				"Saloon",
+				"Evelyn",
+				"JojaMart"
+			};
+            bool[] result = new bool[8];
+            for (int i = 0; i < 8; ++i)
+                result[i] = Game1.netWorldState.Value.CheckedGarbage.Contains(cans[i]);
 			return result;
 		}
 

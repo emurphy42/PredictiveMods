@@ -40,9 +40,10 @@ namespace PublicAccessTV
 				(Helper.Translation.Get ($"nightEvents.{currentEvent}.opening"),
 				background, portrait)
 			{
-				soundCue = "Cowboy_Secret",
-				soundAsset = newYear
-					? "nightEvents_newYear" : "nightEvents_opening"
+                // workaround, see comments from Scene.cs playSoundWithSoundPlayer()
+                soundCue = "Cowboy_Secret" // ,
+				// soundAsset = newYear
+				// 	? "nightEvents_newYear" : "nightEvents_opening"
 			});
 
 			// The governor reacts to the event.

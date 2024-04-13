@@ -82,10 +82,12 @@ namespace PublicAccessTV
 					loadSprite (tv, "Maps\\MovieTheater_TileSheet", new Rectangle (2, 3, 84, 56)),
 					portrait)
 				{
-					soundAsset = "movies_concession",
-					musicTrack =
-						(Constants.TargetPlatform == GamePlatform.Android)
-							? "movieTheater" : null
+                    // workaround, see comments from Scene.cs playSoundWithSoundPlayer()
+                    // soundAsset = "movies_concession",
+					// musicTrack =
+					// 	(Constants.TargetPlatform == GamePlatform.Android)
+					// 		? "movieTheater" : null
+					musicTrack = "movieTheater"
 				});
 			}
 

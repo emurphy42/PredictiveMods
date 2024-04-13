@@ -56,13 +56,32 @@ namespace PublicAccessTV
 
             // Add TV channels.
             var harmony = new Harmony(this.ModManifest.UniqueID);
-			harmony.Patch(
-				original: AccessTools.Method(typeof(GameLocation), nameof(GameLocation.createQuestionDialogue)),
-				prefix: new HarmonyMethod(typeof(ModEntry), nameof(ModEntry.createQuestionDialogue_prefix))
+            harmony.Patch(
+				original: AccessTools.Method(
+					typeof(GameLocation),
+					nameof(GameLocation.createQuestionDialogue),
+					new Type[]
+					{
+						typeof(string),
+						typeof(Response[]),
+						typeof(afterQuestionBehavior),
+						typeof(NPC)
+					}
+				),
+				prefix: new HarmonyMethod(
+					typeof(ModEntry),
+					nameof(ModEntry.createQuestionDialogue_prefix)
+				)
 			);
 			harmony.Patch(
-				original: AccessTools.Method(typeof(TV), nameof(TV.selectChannel)),
-				prefix: new HarmonyMethod(typeof(ModEntry), nameof(ModEntry.selectChannel_prefix))
+				original: AccessTools.Method(
+					typeof(TV),
+					nameof(TV.selectChannel)
+				),
+				prefix: new HarmonyMethod(
+					typeof(ModEntry),
+					nameof(ModEntry.selectChannel_prefix)
+				)
 			);
         }
 

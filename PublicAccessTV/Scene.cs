@@ -96,8 +96,12 @@ namespace PublicAccessTV
 		[MethodImpl (MethodImplOptions.NoInlining)]
 		private void playSoundWithSoundPlayer (string path)
 		{
-			SoundPlayer sound = new (path);
-			sound.Play ();
+            // now requires System.Windows.Extensions, which throws "Failed to resolve assembly" at run time
+			// until/unless this is fixed, workaround is to use fallbacks that were previously Android-specific
+			// (if soundAsset isn't set, then playCustomSound() -> playSoundWithSoundPlayer() aren't called)
+
+            // SoundPlayer sound = new (path);
+			// sound.Play ();
 		}
 	}
 }

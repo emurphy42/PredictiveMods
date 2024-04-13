@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="4.1.1" />
-    <PackageReference Include="System.Windows.Extensions" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
