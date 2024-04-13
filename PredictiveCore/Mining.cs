@@ -8,6 +8,7 @@ using StardewValley.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using SObject = StardewValley.Object;
 
 namespace PredictiveCore
@@ -65,14 +66,27 @@ namespace PredictiveCore
 			// and StardewValley.Locations.MineShaft.loadLevel
 			// as implemented in Stardew Predictor by MouseyPounds.
 
-			bool hasQuarry = Utility.doesMasterPlayerHaveMailReceivedButNotMailForTomorrow
-				("ccCraftsRoom");
+			bool hasQuarry = Utility.doesMasterPlayerHaveMailReceivedButNotMailForTomorrow("ccCraftsRoom")
+				&& Game1.MasterPlayer.hasOrWillReceiveMail("VisitedQuarryMine");
 
 			// Look up to 10 floors beyond the last elevator floor reached.
 			int floorHorizon = Math.Min (120,
 				(MineShaft.lowestLevelReached / 5) * 5 + 10);
 
-			for (int floor = 1; floor < floorHorizon; ++floor)
+			var avoidMonsters = false;
+			var difficultMines = (Game1.netWorldState.Value.MinesDifficulty > 0);
+            if (!difficultMines)
+			{
+                foreach (Farmer onlineFarmer in Game1.getOnlineFarmers())
+                {
+                    if (onlineFarmer.hasBuff(Buff.avoidMonsters))
+                    {
+						avoidMonsters = true;
+                    }
+                }
+            }
+
+            for (int floor = 1; floor < floorHorizon; ++floor)
 			{
 				// Check for uncollected treasures.
 				if (floor % 10 == 0 && floor != 30 &&
@@ -92,53 +106,74 @@ namespace PredictiveCore
 				if (floor % 5 == 0)
 					continue;
 
-				// Check for monster or slime infestation.
-				Random rng = new (date.DaysSinceStart + floor * 100 +
-					(int) Game1.uniqueIDForThisGame / 2);
-				if (rng.NextDouble () < 0.044 && floor % 40 > 5 &&
-					floor % 40 < 30 && floor % 40 != 19)
-				{
-					predictions.Add (new Prediction
-					{
-						location = Location.TheMines,
-						floor = floor,
-						type = (rng.NextDouble () < 0.5)
-							? FloorType.MonsterInfested
-							: FloorType.SlimeInfested,
-					});
-					continue;
-				}
+				int mapNumberToLoad = floor % 40; // exceptions are all elevator floors
+                
+				FloorType? typeToPredict = null;
 
-				// Check for quarry-style floor, with or without infestation.
-				if (rng.NextDouble () < 0.044 && hasQuarry && floor % 40 > 1)
+				// Perform same non-invasive checks as loadLevel(), even if they don't lead to a prediction
+				// This is apparently off a bit on quarry levels for some reason
+                Random rng = Utility.CreateDaySaveRandom(floor * 100);
+                if (
+					!avoidMonsters
+					    && rng.NextDouble() < 0.044
+						&& mapNumberToLoad > 5
+					    && mapNumberToLoad < 30
+						&& mapNumberToLoad != 19
+				)
 				{
-					predictions.Add (new Prediction
+                    if (rng.NextBool())
 					{
-						location = Location.TheMines,
-						floor = floor,
-						type = (rng.NextDouble () < 0.25)
-							? FloorType.QuarryInfested
-							: FloorType.Quarry,
-					});
-					continue;
-				}
+						typeToPredict = FloorType.MonsterInfested;
+					}
+					else
+					{
+						typeToPredict = FloorType.SlimeInfested;
+					}
+                }
+				else if (
+                    rng.NextDouble() < 0.044
+                        && hasQuarry
+						&& mapNumberToLoad > 1
+				)
+				{
+                    if (rng.NextDouble() < 0.25)
+					{
+						typeToPredict = FloorType.QuarryInfested;
+					}
+					else
+					{
+                        typeToPredict = FloorType.Quarry;
+                    }
+                }
 
-				// Check for a mushroom floor.
-				rng = new Random ((date.DaysSinceStart * floor) + (4 * floor) +
-					(int) Game1.uniqueIDForThisGame / 2);
-				if (Game1.netWorldState.Value.MinesDifficulty <= 0 &&
-						rng.NextDouble () < 0.3 && floor > 2)
-					rng.NextDouble ();
-				rng.NextDouble ();
-				if (rng.NextDouble () < 0.035 && floor > 80)
+                // Perform same non-invasive checks as chooseLevelType(), even if they don't lead to a prediction
+                rng = Utility.CreateDaySaveRandom(Game1.stats.DaysPlayed, floor, 4 * floor);
+				if (difficultMines)
 				{
-					predictions.Add (new Prediction
-					{
-						location = Location.TheMines,
-						floor = floor,
-						type = FloorType.Mushroom,
-					});
 				}
+				else if (rng.NextDouble() < 0.3 && floor > 2)
+                {
+                    if (rng.NextDouble() < 0.3)
+                    {
+                    }
+                }
+                if (rng.NextDouble() < 0.15 && floor > 5)
+                {
+                }
+                if (rng.NextDouble() < 0.035 && floor > 80)
+                {
+					typeToPredict = FloorType.Mushroom;
+                }
+
+				if (typeToPredict != null)
+				{
+                    predictions.Add(new Prediction
+                    {
+                        location = Location.TheMines,
+                        floor = floor,
+                        type = (FloorType)typeToPredict
+                    });
+                }
 			}
 
 			// Check the Skull Cavern, if it has been reached, up to floor 99.
@@ -146,24 +181,37 @@ namespace PredictiveCore
 			{
 				for (int floor = 127; floor < 220; ++floor)
 				{
-					// Check for Pepper Rex floors. Since these are precluded
-					// by an earlier unpredictable roll for treasure rooms,
-					// these are only potential floors.
-					Random rng = new (date.DaysSinceStart + floor * 100 +
-						(int) Game1.uniqueIDForThisGame / 2);
-					if (rng.NextDouble () < 0.044)
-					{
-						rng.NextDouble ();
-						if (rng.NextDouble () < 0.5)
-						{
-							predictions.Add (new Prediction
-							{
-								location = Location.SkullCavern,
-								floor = floor - 120,
-								type = FloorType.PepperRex,
-							});
-						}
-					}
+                    // Check for Pepper Rex floors. Since these are precluded
+                    // by an earlier unpredictable roll for treasure rooms,
+                    // these are only potential floors.
+
+                    // Again, perform same non-invasive checks as loadLevel(), even if they don't lead to a prediction
+                    // Skip checking for Skull Cavern treasure rooms (uses MineShaft.mineRandom)
+
+                    int mapNumberToLoad = floor % 40;
+
+                    Random rng = Utility.CreateDaySaveRandom(floor * 100);
+                    if (
+                        rng.NextDouble() < 0.044
+							&& floor % 5 != 0
+							&& mapNumberToLoad > 5
+							&& mapNumberToLoad < 30
+							&& mapNumberToLoad != 19
+                    )
+                    {
+                        if (rng.NextBool())
+                        {
+                        }
+                        if (rng.NextBool())
+                        {
+                            predictions.Add(new Prediction
+                            {
+                                location = Location.SkullCavern,
+                                floor = floor - 120,
+                                type = FloorType.PepperRex,
+                            });
+                        }
+                    }
 				}
 			}
 
@@ -281,7 +329,7 @@ namespace PredictiveCore
 
 			if (Game1.netWorldState.Value.ShuffleMineChests == Game1.MineChestType.Remixed)
 			{
-				Random rng = new ((int) (Game1.uniqueIDForThisGame * 512) + floor);
+				Random rng = Utility.CreateRandom((double)Game1.uniqueIDForThisGame * 512.0, floor);
 				return rng.ChooseFrom(candidates);
 			}
 			return candidates.FirstOrDefault ();
