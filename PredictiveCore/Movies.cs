@@ -47,11 +47,8 @@ namespace PredictiveCore
 			// as implemented in Stardew Predictor by MouseyPounds.
 			if (Game1.getLocationFromName ("MovieTheater") is MovieTheater theater)
 			{
-				Random rng = new ((int) Game1.uniqueIDForThisGame +
-					date.DaysSinceStart - 1);
-				prediction.craneGameAvailable = !(rng.NextDouble () < 0.25) &&
-					theater.dayFirstEntered.Value != -1 &&
-					theater.dayFirstEntered.Value != date.DaysSinceStart - 1;
+				Random rng = Utility.CreateRandom(Game1.uniqueIDForThisGame, Game1.Date.TotalDays);
+				prediction.craneGameAvailable = !(theater.dayFirstEntered.Value == Game1.Date.TotalDays || rng.NextDouble() < 0.25);
 			}
 
 			return prediction;
