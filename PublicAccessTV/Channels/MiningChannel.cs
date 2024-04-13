@@ -22,7 +22,7 @@ namespace PublicAccessTV
 		public MiningChannel ()
 			: base ("mining")
 		{
-			Helper.Content.Load<Texture2D>
+			Helper.ModContent.Load<Texture2D>
 				(Path.Combine ("assets", "mining_backgrounds.png"));
 		}
 

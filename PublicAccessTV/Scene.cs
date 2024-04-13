@@ -48,7 +48,7 @@ namespace PublicAccessTV
 				beforeAction.Invoke ();
 
 			Game1.changeMusicTrack (musicTrack ?? "none", false,
-				Game1.MusicContext.Event);
+				StardewValley.GameData.MusicContext.Event);
 
 			if (soundAsset != null &&
 				Constants.TargetPlatform != GamePlatform.Android)

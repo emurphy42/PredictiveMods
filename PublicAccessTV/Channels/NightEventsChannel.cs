@@ -15,7 +15,7 @@ namespace PublicAccessTV
 		public NightEventsChannel ()
 			: base ("nightEvents")
 		{
-			Helper.Content.Load<Texture2D>
+			Helper.ModContent.Load<Texture2D>
 				(Path.Combine ("assets", "nightEvents_backgrounds.png"));
 		}
 
@@ -82,7 +82,7 @@ namespace PublicAccessTV
 				}
 			}
 
-			if (tonight.Season == "winter" && tonight.Day == 28)
+			if (tonight.Season == Season.Winter && tonight.Day == 28)
 				return NightEvents.Event.NewYear;
 
 			return NightEvents.Event.None;

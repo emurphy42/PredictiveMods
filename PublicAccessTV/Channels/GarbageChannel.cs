@@ -13,7 +13,7 @@ namespace PublicAccessTV
 {
 	public class GarbageChannel : Channel
 	{
-		internal static readonly int EventID = 79400102;
+		internal static readonly string EventID = "79400102";
 		internal static readonly string EventMap = "Town";
 		internal static readonly Dictionary<string, string> Events = new ()
 		{
@@ -56,7 +56,7 @@ namespace PublicAccessTV
 		public GarbageChannel ()
 			: base ("garbage")
 		{
-			Helper.Content.Load<Texture2D>
+			Helper.ModContent.Load<Texture2D>
 				(Path.Combine ("assets", "garbage_backgrounds.png"));
 		}
 
@@ -125,7 +125,7 @@ namespace PublicAccessTV
 					// Must have four or more hearts with Linus.
 					Game1.player.getFriendshipHeartLevelForNPC ("Linus") < 4 ||
 					// Must have seen the vanilla event with Linus in town.
-					!Game1.player.eventsSeen.Contains (502969))
+					!Game1.player.eventsSeen.Contains ("502969"))
 				return;
 
 			// Stop further runs of this method immediately.
@@ -151,7 +151,7 @@ namespace PublicAccessTV
 
 			// Run the event, after a delay to allow the can action to finish.
 			DelayedAction.functionAfterDelay (() =>
-				Game1.currentLocation.startEvent (new Event (eventScript, EventID)),
+				Game1.currentLocation.startEvent (new Event (eventString: eventScript, fromAssetName: null, eventID: EventID)),
 				500);
 		}
 

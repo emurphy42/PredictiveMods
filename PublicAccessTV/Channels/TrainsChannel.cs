@@ -18,7 +18,7 @@ namespace PublicAccessTV
 	{
 		public HeritageTrain ()
 		{
-			NetFields.AddFields (cars, type, position.NetFields);
+			NetFields.AddField(cars).AddField(type).AddField(position.NetFields);
 			Random random = new ();
 			type.Value = Train.uniformColorPlainTrain;
 			speed = 0.1f;
@@ -34,7 +34,7 @@ namespace PublicAccessTV
 
 	public class TrainsChannel : Channel
 	{
-		internal static readonly int EventID = 79400101;
+		internal static readonly string EventID = "79400101";
 		internal static readonly string EventMap = "Railroad";
 		internal static readonly Dictionary<string, string> Events = new ()
 		{
@@ -53,7 +53,7 @@ namespace PublicAccessTV
 		public TrainsChannel ()
 			: base ("trains")
 		{
-			Helper.Content.Load<Texture2D>
+			Helper.ModContent.Load<Texture2D>
 				(Path.Combine ("assets", "trains_backgrounds.png"));
 		}
 
@@ -97,14 +97,14 @@ namespace PublicAccessTV
 			Helper.Events.Display.RenderedWorld += ForceDrawTrain;
 
 			// Run the event script.
-			Game1.currentLocation.startEvent (new Event (Events["79400101/n kdau.never"], EventID));
+			Game1.currentLocation.startEvent (new Event (eventString: Events["79400101/n kdau.never"], fromAssetName: null, eventID: EventID));
 		}
 
 		private static void ForceDrawTrain (object _sender,
 			RenderedWorldEventArgs e)
 		{
 			if (Game1.currentLocation is Railroad rr && rr.train.Value != null)
-				rr.train.Value.draw (e.SpriteBatch);
+				rr.train.Value.draw (e.SpriteBatch, Game1.currentLocation);
 			else
 				Helper.Events.Display.RenderedWorld -= ForceDrawTrain;
 		}
@@ -120,7 +120,7 @@ namespace PublicAccessTV
 
 			GameLocation location = Game1.getLocationFromName ("Mountain");
 			TemporaryAnimatedSprite background = loadBackground (tv, 0,
-				(Game1.IsRainingHere (location) || Game1.isDarkOut ()) ? 1 : 0);
+				(Game1.IsRainingHere (location) || Game1.isDarkOut (location)) ? 1 : 0);
 			TemporaryAnimatedSprite portrait = loadPortrait (tv, "Demetrius");
 
 			// Opening scene: Demetrius greets the viewer.

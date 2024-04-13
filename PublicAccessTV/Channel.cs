@@ -55,7 +55,7 @@ namespace PublicAccessTV
 			if (scenes.Count == 0)
 			{
 				tv.turnOffTV ();
-				Game1.stopMusicTrack (Game1.MusicContext.Event);
+				Game1.stopMusicTrack (StardewValley.GameData.MusicContext.Event);
 			}
 			else
 			{
@@ -88,8 +88,8 @@ namespace PublicAccessTV
 			int condition = 0)
 		{
 			return loadSprite (tv,
-				Helper.Content.GetActualAssetKey
-					(Path.Combine ("assets", $"{localID}_backgrounds.png")),
+				Helper.ModContent.GetInternalAssetName
+					(Path.Combine ("assets", $"{localID}_backgrounds.png")).Name,
 				new Rectangle (condition * 120, scene * 80, 120, 80));
 		}
 

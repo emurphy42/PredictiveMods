@@ -15,7 +15,7 @@ namespace PublicAccessTV
 		public MoviesChannel ()
 			: base ("movies")
 		{
-			Helper.Content.Load<Texture2D>
+			Helper.ModContent.Load<Texture2D>
 				(Path.Combine ("assets", "movies_craneGame.png"));
 		}
 
@@ -65,8 +65,8 @@ namespace PublicAccessTV
 			// promoted; otherwise, the concession stand is promoted.
 			if (prediction.craneGameAvailable)
 			{
-				string assetName = Helper.Content.GetActualAssetKey
-					(Path.Combine ("assets", "movies_craneGame.png"));
+				string assetName = Helper.ModContent.GetInternalAssetName
+                    (Path.Combine ("assets", "movies_craneGame.png")).Name;
 				TemporaryAnimatedSprite craneGame = loadSprite (tv, assetName,
 					new Rectangle (0, 0, 94, 63));
 				TemporaryAnimatedSprite craneFlash = loadSprite (tv, assetName,

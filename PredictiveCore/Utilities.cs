@@ -153,7 +153,7 @@ namespace PredictiveCore
 			Helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
 		}
 
-		internal static void CheckWorldReady ()
+		public static void CheckWorldReady ()
 		{
 			if (!Context.IsWorldReady)
 				throw new WorldUnreadyException ();

@@ -1,11 +1,14 @@
-using PlatoTK.Events;
 using PredictiveCore;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
+using StardewModdingAPI.Framework.ModLoading.Rewriters.StardewValley_1_5;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using System;
 using System.Collections.Generic;
+using HarmonyLib;
+using static StardewValley.GameLocation;
+using StardewValley.Objects;
 
 namespace PublicAccessTV
 {
@@ -18,6 +21,11 @@ namespace PublicAccessTV
 		private readonly PerScreen<List<Channel>> channels_ = new (() => new ());
 		internal List<Channel> channels => channels_.Value;
 
+		// Set up asset editors.
+		private readonly DialogueEditor dialogueEditor = new();
+		private readonly EventsEditor eventsEditor = new();
+		private readonly MailEditor mailEditor = new();
+
 		public override void Entry (IModHelper helper)
 		{
 			// Make resources available.
@@ -28,12 +36,12 @@ namespace PublicAccessTV
 			Utilities.Initialize (this, () => ModConfig.Instance);
 
 			// Set up asset editors.
-			Helper.Content.AssetEditors.Add (new DialogueEditor ());
-			Helper.Content.AssetEditors.Add (new EventsEditor ());
-			Helper.Content.AssetEditors.Add (new MailEditor ());
+			Helper.Events.Content.AssetRequested += dialogueEditor.OnAssetRequested;
+            Helper.Events.Content.AssetRequested += eventsEditor.OnAssetRequested;
+            Helper.Events.Content.AssetRequested += mailEditor.OnAssetRequested;
 
-			// Add console commands.
-			Helper.ConsoleCommands.Add ("reset_patv_channels",
+            // Add console commands.
+            Helper.ConsoleCommands.Add ("reset_patv_channels",
 				"Resets the custom channels to their unlaunched states (before letters, events, etc.).",
 				(_command, _args) => resetChannels (true));
 
@@ -46,13 +54,19 @@ namespace PublicAccessTV
 			Helper.Events.Player.Warped +=
 				(_sender, _e) => TrainsChannel.CheckEvent ();
 
-			// Listen for PlatoTK events.
-			var plato = PlatoTK.HelperExtension.GetPlatoHelper (this);
-			plato.Events.QuestionRaised += onQuestionRaised;
-			plato.Events.TVChannelSelected += onTVChannelSelected;
-		}
+            // Add TV channels.
+            var harmony = new Harmony(this.ModManifest.UniqueID);
+			harmony.Patch(
+				original: AccessTools.Method(typeof(GameLocation), nameof(GameLocation.createQuestionDialogue)),
+				prefix: new HarmonyMethod(typeof(ModEntry), nameof(ModEntry.createQuestionDialogue_prefix))
+			);
+			harmony.Patch(
+				original: AccessTools.Method(typeof(TV), nameof(TV.selectChannel)),
+				prefix: new HarmonyMethod(typeof(ModEntry), nameof(ModEntry.selectChannel_prefix))
+			);
+        }
 
-		private void onGameLaunched (object _sender, GameLaunchedEventArgs _e)
+        private void onGameLaunched (object _sender, GameLaunchedEventArgs _e)
 		{
 			// Create the channels.
 			channels.Add (new NightEventsChannel ());
@@ -71,26 +85,48 @@ namespace PublicAccessTV
 				channel.update ();
 		}
 
-		private void onQuestionRaised (object _sender, IQuestionRaisedEventArgs e)
+		public static bool createQuestionDialogue_prefix(string question, Response[] answerChoices, afterQuestionBehavior afterDialogueBehavior, NPC speaker = null)
 		{
-			if (e.IsTV)
-			{
-				foreach (Channel channel in channels)
-				{
-					if (channel.isAvailable)
-						e.AddResponse (new Response (channel.globalID, channel.title));
-				}
-			}
+			return Instance.onQuestionRaised(question, answerChoices, afterDialogueBehavior, speaker);
 		}
 
-		private void onTVChannelSelected (object _sender, ITVChannelSelectedEventArgs e)
+		private bool onQuestionRaised(string question, Response[] answerChoices, afterQuestionBehavior afterDialogueBehavior, NPC speaker = null)
 		{
-			var channel = channels.Find (channel => channel.globalID == e.ChannelName);
+			if (question == Game1.content.LoadString("Strings\\StringsFromCSFiles:TV.cs.13120"))
+			{
+                var answerChoicesList = answerChoices.ToList<Response>();
+                foreach (Channel channel in channels)
+                {
+                    if (channel.isAvailable)
+					{
+						answerChoicesList.Add(new Response(channel.globalID, channel.title));
+                    }
+                }
+                answerChoices = answerChoicesList.ToArray();
+            }
+			return true;
+        }
+
+		public static bool selectChannel_prefix(TV __instance, Farmer who, string answer)
+		{
+			return Instance.onTVChannelSelected(__instance, who, answer);
+		}
+
+		private bool onTVChannelSelected (TV __instance, Farmer who, string answer)
+		{
+            if (Game1.IsGreenRainingHere())
+            {
+				return true;
+            }
+            
+			var channel = channels.Find (channel => channel.globalID == answer);
 			if (channel != null)
 			{
-				e.PreventDefault ();
-				channel.show (e.TVInstance);
+				channel.show (__instance);
+				return false;
 			}
+
+			return true;
 		}
 
 		internal void resetChannels (bool isCommand = false)

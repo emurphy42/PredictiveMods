@@ -1,35 +1,42 @@
 using StardewModdingAPI;
+using StardewModdingAPI.Events;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace PublicAccessTV
 {
-	internal class DialogueEditor : IAssetEditor
+	internal class DialogueEditor
 	{
 		protected static IModHelper Helper => ModEntry.Instance.Helper;
 		protected static IMonitor Monitor => ModEntry.Instance.Monitor;
 		protected static ModConfig Config => ModConfig.Instance;
 
-		public bool CanEdit<_T> (IAssetInfo asset)
-		{
+        public void OnAssetRequested(object sender, AssetRequestedEventArgs e)
+        {
 			if (Config.BypassFriendships)
-				return false;
+			{
+				return;
+			}
 
-			return asset.AssetNameEquals ($"Characters\\Dialogue\\{GarbageChannel.DialogueCharacter}") ||
-				asset.AssetNameEquals ($"Characters\\Dialogue\\{TrainsChannel.DialogueCharacter}");
-		}
+			if (e.Name.IsEquivalentTo($"Characters\\Dialogue\\{GarbageChannel.DialogueCharacter}"))
+			{
+				e.Edit(asset =>
+				{
+                    var data = asset.AsDictionary<string, string>().Data;
+                    applyDialogue("garbage", data, GarbageChannel.Dialogue);
+                });
+			}
 
-		public void Edit<_T> (IAssetData asset)
-		{
-			var data = asset.AsDictionary<string, string> ().Data;
-
-			if (asset.AssetNameEquals ($"Characters\\Dialogue\\{GarbageChannel.DialogueCharacter}"))
-				applyDialogue ("garbage", data, GarbageChannel.Dialogue);
-
-			if (asset.AssetNameEquals ($"Characters\\Dialogue\\{TrainsChannel.DialogueCharacter}"))
-				applyDialogue ("trains", data, TrainsChannel.Dialogue);
-		}
+            if (e.Name.IsEquivalentTo($"Characters\\Dialogue\\{TrainsChannel.DialogueCharacter}"))
+            {
+                e.Edit(asset =>
+                {
+                    var data = asset.AsDictionary<string, string>().Data;
+                    applyDialogue("trains", data, TrainsChannel.Dialogue);
+                });
+            }
+        }
 
 		private void applyDialogue (string module, IDictionary<string, string> to,
 			IDictionary<string, string> from)
