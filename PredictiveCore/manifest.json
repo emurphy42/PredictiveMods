@@ -6,12 +6,6 @@
   "UniqueID": "JohnPeters.PredictiveCore",
   "EntryDll": "PredictiveCore.dll",
   "MinimumApiVersion": "3.0.0",
-  "Dependencies": [
-    {
-      "UniqueID": "spacechase0.GenericModConfigMenu",
-      "IsRequired": false
-    }
-  ],
   "UpdateKeys": [
     "Nexus:???"
   ]
