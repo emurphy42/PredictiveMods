@@ -1,6 +1,7 @@
 using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 using StardewValley;
+using StardewValley.Locations;
 using StardewValley.Objects;
 using System;
 using System.Collections.Generic;
@@ -181,137 +182,65 @@ namespace PredictiveCore
 		private static Item GetLootForDateAndCan (SDate date, Can can,
 			bool hatOnly, out bool special)
 		{
-			// Logic from StardewValley.Locations.Town.checkAction()
-			// as implemented in Stardew Predictor by MouseyPounds.
+            // Logic from StardewValley.Locations.Town.checkAction()
+            // as implemented in Stardew Predictor by MouseyPounds.
 
-			special = false;
-
-			// Handle the presence of SVE's altered town map.
-			Can standardCan = (Can) ((int) can % 100);
-			int canValue = (int) standardCan;
-
-			// Handle the special case of JojaMart/MovieTheater.
-			bool hasTheater = Utility.doesMasterPlayerHaveMailReceivedButNotMailForTomorrow ("ccMovieTheater") &&
-				!Utility.doesMasterPlayerHaveMailReceivedButNotMailForTomorrow ("ccMovieTheaterJoja");
-			if ((hasTheater && can == Can.JojaMart) ||
-				(!hasTheater && can == Can.MovieTheater))
-				return null;
-			if (can == Can.MovieTheater)
-				canValue = (int) Can.JojaMart;
-
-			// Create and prewarm the random generator.
-			Random rng = new ((int) Game1.uniqueIDForThisGame / 2 +
-				date.DaysSinceStart + 777 + canValue * 77);
-			int prewarm = rng.Next (0, 100);
-			for (int i = 0; i < prewarm; i++)
-				rng.NextDouble ();
-			prewarm = rng.Next (0, 100);
-			for (int j = 0; j < prewarm; j++)
-				rng.NextDouble ();
-
-			// Roll for regular items.
-			uint trashCansChecked = Game1.stats.Get("trashCansChecked") + 1;
-			bool regular = trashCansChecked > 20 && rng.NextDouble () < 0.01;
-
-			// Roll for the Garbage Hat.
-			if (trashCansChecked > 20 && rng.NextDouble () < 0.002)
-				return new Hat ("66");
-			else if (hatOnly)
-				return null;
-
-			// If the regular roll failed, roll for luck and then give up.
-			// Use today's luck for today, else a liquidated value.
-			bool today = date == SDate.Now ();
-			double dailyLuck = today ? Game1.player.DailyLuck
-				: Game1.player.hasSpecialCharm ? 0.125 : 0.1;
-			if (!regular && !(rng.NextDouble () < 0.2 + dailyLuck))
-				return null;
-
-			// Roll for a generic or seasonal item.
-			string itemID = rng.Next (10) switch
+            // Handle the presence of SVE's altered town map.
+            Can standardCan = (Can) ((int) can % 100);
+			Dictionary<Can, string> canIDs = new()
 			{
-				1 => "167", // Joja Cola
-				2 => "170", // Broken Glasses
-				3 => "171", // Broken CD
-                4 => "172", // Soggy Newspaper
-                5 => "216", // Bread
-                6 => "-1", // seasonal item
-                7 => "403", // Field Snack
-                8 => (309 + rng.Next (3)).ToString(), // Acorn, Maple Seed, Pine Cone
-				9 => "153", // Green Algae
-                _ => "168", // Trash
-            };
-			bool seasonal = false;
-			if (itemID == "-1")
-            {
-				seasonal = true;
-                itemID = Utility.getRandomItemFromSeason (date.Season,
-					(CanLocations[can].X * 653) + (CanLocations[can].Y * 777) +
-					date.DaysSinceStart, forQuest: false, changeDaily: false);
+				{ Can.SamHouse, "JodiAndKent" },
+				{ Can.HaleyHouse, "EmilyAndHaley" },
+				{ Can.ManorHouse, "Mayor" },
+				{ Can.ArchaeologyHouse, "Museum" },
+				{ Can.Blacksmith, "Blacksmith" },
+				{ Can.Saloon, "Saloon" },
+				{ Can.JoshHouse, "Evelyn" },
+				{ Can.JojaMart, "JojaMart" }
+			};
+			var canID = canIDs[standardCan];
+
+            // Use today's luck for today, else a liquidated value.
+            bool today = date == SDate.Now();
+            double dailyLuck = today ? Game1.player.DailyLuck
+                : Game1.player.hasSpecialCharm ? 0.125 : 0.1;
+
+            var town = Game1.getLocationFromName("Town");
+			town.TryGetGarbageItem(
+				canID,
+				dailyLuck,
+				out var item,
+				out var selected,
+				out var garbageRandom,
+				logError: null
+			);
+
+            special = false;
+			if (item != null)
+			{
+				switch (item.QualifiedItemId)
+				{
+					case "(O)170": // Broken Glasses
+					case "(O)171": // Broken CD
+					case "(O)172": // Soggy Newspaper
+					case "(O)216": // Bread
+					case "(O)403": // Field Snack
+					case "(O)309": // Acorn
+					case "(O)310": // Maple Seed
+					case "(O)311": // Pine Cone
+					case "(O)153": // Green Algae
+					case "(O)168": // Trash
+						break;
+                    case "(O)167": // Joja Cola
+                        special = (standardCan == Can.JojaMart && !Utility.HasAnyPlayerSeenEvent("191393")); // Stardew Hero
+                        break;
+                    default:
+						special = true;
+						break;
+				}
 			}
 
-			// Roll for location-specific overrides. These do not care about
-			// SVE, so take the standard can identity.
-			bool locationSpecific = false;
-			switch (standardCan)
-			{
-			case Can.ArchaeologyHouse:
-				if (rng.NextDouble () < 0.2 + dailyLuck)
-				{
-					locationSpecific = true;
-					if (rng.NextDouble () < 0.05)
-						itemID = "749"; // Omni Geode
-					else
-						itemID = "535"; // Geode
-				}
-				break;
-			case Can.Blacksmith:
-				if (rng.NextDouble () < 0.2 + dailyLuck)
-				{
-					locationSpecific = true;
-					itemID = (378 + (rng.Next (3) * 2)).ToString(); // Copper Ore, Iron Ore, Coal
-					rng.Next (1, 5); // unused
-				}
-				break;
-			case Can.Saloon:
-				if (rng.NextDouble () < 0.2 + dailyLuck)
-				{
-					locationSpecific = true;
-					if (!today)
-						itemID = "217"; // placeholder for dish of the day
-					else if (Game1.dishOfTheDay != null)
-						itemID = Game1.dishOfTheDay.ParentSheetIndex.ToString();
-				}
-				break;
-			case Can.JoshHouse:
-				if (rng.NextDouble () < 0.2 + dailyLuck)
-				{
-					locationSpecific = true;
-					itemID = "223"; // Cookie
-				}
-				break;
-			case Can.JojaMart:
-				if (rng.NextDouble () < 0.2 &&
-					!Utility.HasAnyPlayerSeenEvent ("191393"))
-				{
-					locationSpecific = true;
-					itemID = "167"; // Joja Cola
-				}
-				break;
-			case Can.MovieTheater:
-				if (rng.NextDouble () < 0.2)
-				{
-					locationSpecific = true;
-					itemID = (rng.NextDouble () < 0.25)
-						? "809" : "270"; // Movie Ticket, Corn
-				}
-				break;
-			}
-
-			// Ignoring the chance of a Qi Bean here since it uses the main RNG.
-
-			special = seasonal || locationSpecific;
-			return new SObject (itemID, 1);
+            return item;
 		}
 	}
 }

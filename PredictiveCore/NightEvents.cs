@@ -1,6 +1,7 @@
 using StardewModdingAPI;
 using StardewModdingAPI.Utilities;
 using StardewValley;
+using StardewValley.BellsAndWhistles;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,8 @@ namespace PredictiveCore
 			StrangeCapsule,
 			StoneOwl,
 			NewYear, // used by PublicAccessTV only
+			RaccoonTree,
+			QiPlane
 		}
 
 		public struct Prediction
@@ -45,6 +48,8 @@ namespace PredictiveCore
 
 			List<Prediction> predictions = new ();
 
+			bool qiPlanePredicted = false;
+
 			for (int days = fromDate.DaysSinceStart;
 				predictions.Count < limit &&
 					days < fromDate.DaysSinceStart + Utilities.MaxHorizon;
@@ -63,20 +68,44 @@ namespace PredictiveCore
 				}
 
 				Event @event = Event.None;
-				Random rng = new (((int) Game1.uniqueIDForThisGame / 2) + days + 1);
-				if (days == 29)
+				// Base game uses Utility.CreateDaySaveRandom()
+				// but we need to emulate what this would do in the future
+				// Offset between Game1.stats.DaysPlayed and days is based on base game's logic for earthquake (DaysPlayed == 31 vs days == 29)
+				var EffectiveDaysPlayed = days + 2;
+                Random rng = Utility.CreateRandom(EffectiveDaysPlayed, Game1.uniqueIDForThisGame / 2);
+				if (EffectiveDaysPlayed == 31)
 					@event = Event.Earthquake;
 				// Ignoring the possibility of a WorldChangeEvent here.
-				else if (rng.NextDouble () < 0.01 && tomorrow.Season != Season.Winter)
+				else if (
+					Utility.doesMasterPlayerHaveMailReceivedButNotMailForTomorrow("ccPantry")
+						&& rng.NextDouble() < 0.1
+						&& !Game1.MasterPlayer.mailReceived.Contains("raccoonTreeFallen")
+				)
+					@event = Event.RaccoonTree;
+                else if (
+					!Game1.player.mailReceived.Contains("sawQiPlane")
+						|| qiPlanePredicted
+				)
+				{
+                    foreach (Farmer onlineFarmer2 in Game1.getOnlineFarmers())
+                    {
+                        if (onlineFarmer2.mailReceived.Contains("gotFirstBillboardPrizeTicket") || EffectiveDaysPlayed > 50)
+						{
+							@event = Event.QiPlane;
+							qiPlanePredicted = true;
+						}
+					}
+				}
+                else if (rng.NextDouble() < 0.01 && tomorrow.Season != Season.Winter && tomorrow.Day != 1)
 					@event = Event.Fairy;
-				else if (rng.NextDouble () < 0.01)
+				else if (rng.NextDouble() < 0.01 && EffectiveDaysPlayed > 20)
 					@event = Event.Witch;
-				else if (rng.NextDouble () < 0.01)
+				else if (rng.NextDouble() < 0.01 && EffectiveDaysPlayed > 5)
 					@event = Event.Meteorite;
-				else if (rng.NextDouble () < 0.005)
+				else if (rng.NextDouble() < 0.005)
 					@event = Event.StoneOwl;
-				else if (rng.NextDouble () < 0.008 && tomorrow.Year > 1 &&
-						!Utility.doesMasterPlayerHaveMailReceivedButNotMailForTomorrow ("Got_Capsule"))
+				else if (rng.NextDouble() < 0.008 && tomorrow.Year > 1 &&
+						!Utility.doesMasterPlayerHaveMailReceivedButNotMailForTomorrow("Got_Capsule"))
 					@event = Event.StrangeCapsule;
 
 				if (@event == Event.None ||

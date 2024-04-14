@@ -40,8 +40,12 @@ namespace PredictiveCore
 					days < fromDate.DaysSinceStart + Utilities.MaxHorizon;
 				++days)
 			{
-				Random rng = new (((int) Game1.uniqueIDForThisGame / 2) + days);
-				if (!(rng.NextDouble () < 0.2))
+                // Base game uses Utility.CreateDaySaveRandom() which depends on the current date
+                // but we need to emulate what this would do in the past/future
+                // See NightEvents.cs for notes on +2 offset
+                var EffectiveDaysPlayed = days + 2;
+                Random rng = Utility.CreateRandom(EffectiveDaysPlayed, Game1.uniqueIDForThisGame / 2);
+                if (!(rng.NextDouble () < 0.2))
 					continue;
 
 				int time = rng.Next (900, 1800);
