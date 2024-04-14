@@ -23,7 +23,7 @@ namespace PredictiveCore
 			Saloon, // Gus
 			JoshHouse, // Alex, Evelyn, George
 			JojaMart, // Morris
-			MovieTheater, // (only when replaing JojaMart)
+			MovieTheater, // (only when replacing JojaMart)
 			Max,
 			// alternate can sequence for SVE
 			SVE_SamHouse = 100, // Jodi, Kent*, Sam, Vincent
@@ -182,8 +182,10 @@ namespace PredictiveCore
 		private static Item GetLootForDateAndCan (SDate date, Can can,
 			bool hatOnly, out bool special)
 		{
-            // Logic from StardewValley.Locations.Town.checkAction()
-            // as implemented in Stardew Predictor by MouseyPounds.
+			// Logic from StardewValley.Locations.Town.checkAction()
+			// as implemented in Stardew Predictor by MouseyPounds.
+
+			special = false;
 
             // Handle the presence of SVE's altered town map.
             Can standardCan = (Can) ((int) can % 100);
@@ -196,9 +198,19 @@ namespace PredictiveCore
 				{ Can.Blacksmith, "Blacksmith" },
 				{ Can.Saloon, "Saloon" },
 				{ Can.JoshHouse, "Evelyn" },
-				{ Can.JojaMart, "JojaMart" }
+				{ Can.JojaMart, "JojaMart" },
+				{ Can.MovieTheater, "JojaMart" }
 			};
 			var canID = canIDs[standardCan];
+
+			// Skip either JojaMart or (non-Joja) Movie Theater, depending on whether JojaMart has been replaced.
+			var ccMovieTheater = Utility.doesMasterPlayerHaveMailReceivedButNotMailForTomorrow("ccMovieTheater");
+            if (
+				(standardCan == Can.JojaMart && ccMovieTheater)
+					|| (standardCan == Can.MovieTheater && !ccMovieTheater)
+			) {
+				return null;
+			}
 
             // Use today's luck for today, else a liquidated value.
             bool today = date == SDate.Now();
@@ -215,7 +227,6 @@ namespace PredictiveCore
 				logError: null
 			);
 
-            special = false;
 			if (item != null)
 			{
 				switch (item.QualifiedItemId)
