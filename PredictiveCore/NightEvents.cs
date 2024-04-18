@@ -68,12 +68,17 @@ namespace PredictiveCore
 				}
 
 				Event @event = Event.None;
-				// Base game uses Utility.CreateDaySaveRandom()
-				// but we need to emulate what this would do in the future
-				// Offset between Game1.stats.DaysPlayed and days is based on base game's logic for earthquake (DaysPlayed == 31 vs days == 29)
-				var EffectiveDaysPlayed = days + 2;
+
+                // Base game's Utility.pickFarmEvent() uses Utility.CreateDaySaveRandom()
+                // but we need to emulate what this would do in the future
+                var EffectiveDaysPlayed = days + 1;
                 Random rng = Utility.CreateRandom(EffectiveDaysPlayed, Game1.uniqueIDForThisGame / 2);
-				if (EffectiveDaysPlayed == 31)
+
+                for (int i = 0; i < 10; i++)
+                {
+                    rng.NextDouble();
+                }
+                if (EffectiveDaysPlayed == 31)
 					@event = Event.Earthquake;
 				// Ignoring the possibility of a WorldChangeEvent here.
 				else if (
@@ -96,7 +101,8 @@ namespace PredictiveCore
 						}
 					}
 				}
-                else if (rng.NextDouble() < 0.01 && tomorrow.Season != Season.Winter && tomorrow.Day != 1)
+				// Ignoring the possibility of fairy rose maturing later
+                else if (rng.NextDouble() < 0.01 + (Game1.getFarm().hasMatureFairyRoseTonight ? 0.007 : 0.0) && tomorrow.Season != Season.Winter && tomorrow.Day != 1)
 					@event = Event.Fairy;
 				else if (rng.NextDouble() < 0.01 && EffectiveDaysPlayed > 20)
 					@event = Event.Witch;

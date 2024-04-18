@@ -40,11 +40,11 @@ namespace PredictiveCore
 					days < fromDate.DaysSinceStart + Utilities.MaxHorizon;
 				++days)
 			{
-                // Base game uses Utility.CreateDaySaveRandom() which depends on the current date
+                // Base game's Railroad.DayUpdate() uses Utility.CreateDaySaveRandom() which depends on the current date
                 // but we need to emulate what this would do in the past/future
-                // See NightEvents.cs for notes on +2 offset
-                var EffectiveDaysPlayed = days + 2;
+                var EffectiveDaysPlayed = days + 1;
                 Random rng = Utility.CreateRandom(EffectiveDaysPlayed, Game1.uniqueIDForThisGame / 2);
+
                 if (!(rng.NextDouble () < 0.2))
 					continue;
 
@@ -53,12 +53,13 @@ namespace PredictiveCore
 				if (time % 100 >= 60)
 					continue;
 
-				// No train on the first day after loading the game.
-				SDate date = SDate.FromDaysSinceStart (days);
-				if (date == Utilities.LoadDate)
+                // No train on the first day after loading the game.
+                SDate tonight = SDate.FromDaysSinceStart(days);
+                SDate tomorrow = SDate.FromDaysSinceStart(days + 1);
+                if (tonight == Utilities.LoadDate)
 					continue;
 
-				predictions.Add (new Prediction { date = date, time = time });
+				predictions.Add (new Prediction { date = tomorrow, time = time });
 			}
 
 			return predictions;

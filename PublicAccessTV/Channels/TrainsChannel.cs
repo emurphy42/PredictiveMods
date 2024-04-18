@@ -77,7 +77,7 @@ namespace PublicAccessTV
 					Config.BypassFriendships ||
 					// Must not have seen this event yet.
 					Game1.player.eventsSeen.Contains (EventID) ||
-					// Must have two or more hearts with Linus.
+					// Must have two or more hearts with Demetrius.
 					Game1.player.getFriendshipHeartLevelForNPC ("Demetrius") < 2 ||
 					// Must be on the Railroad map.
 					Game1.currentLocation?.Name != "Railroad" ||
