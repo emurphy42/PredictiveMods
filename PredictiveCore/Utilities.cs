@@ -36,7 +36,7 @@ namespace PredictiveCore
 	public static class Utilities
 	{
 		public static bool SupportedVersion =>
-			new SemanticVersion (Game1.version).IsBetween ("1.6.0", "1.6.3");
+			new SemanticVersion (Game1.version).IsBetween ("1.6.0", "1.7.0");
 
 		// Parses a list of three console arguments (year, season, day) as an
 		// SDate. If the list is empty, returns the current date.
