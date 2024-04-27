@@ -27,7 +27,7 @@ namespace PublicAccessTV
 		private readonly EventsEditor eventsEditor = new();
 		private readonly MailEditor mailEditor = new();
 
-		private static bool questionModified = false;
+		private static DateTime? questionLastModified = null;
 
 		public override void Entry (IModHelper helper)
 		{
@@ -114,9 +114,9 @@ namespace PublicAccessTV
 
 		private bool onQuestionRaised(GameLocation __instance, string question, Response[] answerChoices, afterQuestionBehavior afterDialogueBehavior, NPC speaker = null)
 		{
-			if (questionModified)
+			// "Question already modified" persists for one second, to avoid an apparent race condition
+			if (questionLastModified != null && questionLastModified > DateTime.Now.AddSeconds(-1))
 			{
-                questionModified = false;
 				return true;
 			}
 
@@ -147,9 +147,8 @@ namespace PublicAccessTV
                     answerChoicesList.Add(response);
                 }
             }
-            questionModified = true;
+            questionLastModified = DateTime.Now;
             __instance.createQuestionDialogue(question, answerChoicesList.ToArray(), afterDialogueBehavior, speaker);
-            questionModified = false;
             return false;
         }
 
