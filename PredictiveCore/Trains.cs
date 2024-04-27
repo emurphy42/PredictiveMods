@@ -59,6 +59,10 @@ namespace PredictiveCore
                 if (tonight == Utilities.LoadDate)
 					continue;
 
+				// No train on festival days.
+				if (Utility.isFestivalDay(day: tomorrow.Day, season: tomorrow.Season))
+					continue;
+
 				predictions.Add (new Prediction { date = tomorrow, time = time });
 			}
 
