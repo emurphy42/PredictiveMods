@@ -27,7 +27,7 @@ namespace PublicAccessTV
 		private readonly EventsEditor eventsEditor = new();
 		private readonly MailEditor mailEditor = new();
 
-		private static DateTime? questionLastModified = null;
+		private static bool questionModified = false;
 
 		public override void Entry (IModHelper helper)
 		{
@@ -114,9 +114,9 @@ namespace PublicAccessTV
 
 		private bool onQuestionRaised(GameLocation __instance, string question, Response[] answerChoices, afterQuestionBehavior afterDialogueBehavior, NPC speaker = null)
 		{
-			// "Question already modified" persists for one second, to avoid an apparent race condition
-			if (questionLastModified != null && questionLastModified > DateTime.Now.AddSeconds(-1))
+			if (questionModified)
 			{
+				questionModified = false;
 				return true;
 			}
 
@@ -125,29 +125,33 @@ namespace PublicAccessTV
 				return true;
 			}
 
+			List<string> channelIDsIncluded = new();
 			List<Response> answerChoicesList = new();
 			foreach (Response response in answerChoices)
 			{
-				if (response.responseKey != "(Leave)")
+				if (response.responseKey != "(Leave)" && !channelIDsIncluded.Contains(response.responseKey))
 				{
 					answerChoicesList.Add(response);
+					channelIDsIncluded.Add(response.responseKey);
 				}
 			}
             foreach (Channel channel in channels)
             {
-                if (channel.isAvailable)
+                if (channel.isAvailable && !channelIDsIncluded.Contains(channel.globalID))
 				{
 					answerChoicesList.Add(new Response(channel.globalID, channel.title));
-                }
-			}
-            foreach (Response response in answerChoices)
-            {
-                if (response.responseKey == "(Leave)")
-                {
-                    answerChoicesList.Add(response);
+                    channelIDsIncluded.Add(channel.globalID);
                 }
             }
-            questionLastModified = DateTime.Now;
+            foreach (Response response in answerChoices)
+            {
+                if (response.responseKey == "(Leave)" && !channelIDsIncluded.Contains(response.responseKey))
+                {
+                    answerChoicesList.Add(response);
+                    channelIDsIncluded.Add(response.responseKey);
+                }
+            }
+            questionModified = true;
             __instance.createQuestionDialogue(question, answerChoicesList.ToArray(), afterDialogueBehavior, speaker);
             return false;
         }
