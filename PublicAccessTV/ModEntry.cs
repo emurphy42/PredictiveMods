@@ -105,9 +105,9 @@ namespace PublicAccessTV
 				channel.update ();
 		}
 
-		public static bool createQuestionDialogue_prefix(GameLocation __instance, string question, Response[] answerChoices, afterQuestionBehavior afterDialogueBehavior, NPC speaker = null)
+		public static bool createQuestionDialogue_prefix(GameLocation __instance, string question, ref Response[] answerChoices, afterQuestionBehavior afterDialogueBehavior, NPC speaker = null)
 		{
-			return Instance.onQuestionRaised(__instance, question, answerChoices, afterDialogueBehavior, speaker);
+			return Instance.onQuestionRaised(__instance, question, ref answerChoices, afterDialogueBehavior, speaker);
 		}
 
 		private bool onQuestionRaised(GameLocation __instance, string question, ref Response[] answerChoices, afterQuestionBehavior afterDialogueBehavior, NPC speaker = null)
