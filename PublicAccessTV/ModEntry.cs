@@ -27,8 +27,6 @@ namespace PublicAccessTV
 		private readonly EventsEditor eventsEditor = new();
 		private readonly MailEditor mailEditor = new();
 
-		private static bool questionModified = false;
-
 		public override void Entry (IModHelper helper)
 		{
 			// Make resources available.
@@ -112,48 +110,23 @@ namespace PublicAccessTV
 			return Instance.onQuestionRaised(__instance, question, answerChoices, afterDialogueBehavior, speaker);
 		}
 
-		private bool onQuestionRaised(GameLocation __instance, string question, Response[] answerChoices, afterQuestionBehavior afterDialogueBehavior, NPC speaker = null)
+		private bool onQuestionRaised(GameLocation __instance, string question, ref Response[] answerChoices, afterQuestionBehavior afterDialogueBehavior, NPC speaker = null)
 		{
-			if (questionModified)
-			{
-				questionModified = false;
-				return true;
-			}
-
 			if (question != Game1.content.LoadString("Strings\\StringsFromCSFiles:TV.cs.13120"))
 			{
 				return true;
 			}
 
-			List<string> channelIDsIncluded = new();
-			List<Response> answerChoicesList = new();
-			foreach (Response response in answerChoices)
-			{
-				if (response.responseKey != "(Leave)" && !channelIDsIncluded.Contains(response.responseKey))
-				{
-					answerChoicesList.Add(response);
-					channelIDsIncluded.Add(response.responseKey);
-				}
-			}
+			var answerChoicesList = new List<Response>(answerChoices);
             foreach (Channel channel in channels)
             {
-                if (channel.isAvailable && !channelIDsIncluded.Contains(channel.globalID))
+                if (channel.isAvailable)
 				{
-					answerChoicesList.Add(new Response(channel.globalID, channel.title));
-                    channelIDsIncluded.Add(channel.globalID);
+					answerChoicesList.Insert(answerChoicesList.Count - 1, new Response(channel.globalID, channel.title));
                 }
             }
-            foreach (Response response in answerChoices)
-            {
-                if (response.responseKey == "(Leave)" && !channelIDsIncluded.Contains(response.responseKey))
-                {
-                    answerChoicesList.Add(response);
-                    channelIDsIncluded.Add(response.responseKey);
-                }
-            }
-            questionModified = true;
-            __instance.createQuestionDialogue(question, answerChoicesList.ToArray(), afterDialogueBehavior, speaker);
-            return false;
+            answerChoices = answerChoicesList.ToArray();
+            return true;
         }
 
 
