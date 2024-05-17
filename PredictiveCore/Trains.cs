@@ -35,7 +35,8 @@ namespace PredictiveCore
 
 			List<Prediction> predictions = new ();
 
-			for (int days = Math.Max (fromDate.DaysSinceStart, 31);
+			// Start from yesterday (to check for a train today), or Summer 3 Year 1, whichever is later
+			for (int days = Math.Max (fromDate.DaysSinceStart - 1, 31);
 				predictions.Count < limit &&
 					days < fromDate.DaysSinceStart + Utilities.MaxHorizon;
 				++days)
