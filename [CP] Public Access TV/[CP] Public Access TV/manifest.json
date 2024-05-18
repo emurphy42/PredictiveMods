@@ -1,0 +1,12 @@
+{
+  "Name": "[CP] Public Access TV",
+  "Author": "John Peters (you know, the farmer?)",
+  "Version": "3.0.10",
+  "Description": "Villager-hosted TV channels about mining, shopping, foraging and more.",
+  "UniqueID": "JohnPeters.PublicAccessTVCP",
+  "MinimumApiVersion": "3.0.0",
+  "UpdateKeys": [ "Nexus:22486" ],
+  "ContentPackFor": {
+    "UniqueID": "Pathoschild.ContentPatcher",
+   }
+}
